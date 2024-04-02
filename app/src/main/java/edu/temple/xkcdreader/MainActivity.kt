@@ -1,11 +1,18 @@
 package edu.temple.xkcdreader
 
+import android.content.Intent
+import android.content.pm.verify.domain.DomainVerificationManager
+import android.content.pm.verify.domain.DomainVerificationUserState
+import android.net.Uri
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.Settings
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.lifecycleScope
 import com.squareup.picasso.Picasso
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +44,20 @@ class MainActivity : AppCompatActivity() {
             lifecycleScope.launch(Dispatchers.Main) {
                 fetchComic(comicNumberEditText.text.toString())
             }
+        }
+
+
+
+        if(intent.action!! == Intent.ACTION_VIEW) {
+            val comicId = intent.data?.path!!.substringBeforeLast('/')
+            lifecycleScope.launch(Dispatchers.Main) {
+                fetchComic(comicId)
+            }
+        } else {
+            if (getSystemService(DomainVerificationManager::class.java)
+                    .getDomainVerificationUserState(packageName)
+                    ?.hostToStateMap?.filterValues { it == DomainVerificationUserState.DOMAIN_STATE_NONE }?.isNotEmpty()!!)
+                startActivity(Intent(Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS, Uri.parse("package:${packageName}")))
         }
 
     }
